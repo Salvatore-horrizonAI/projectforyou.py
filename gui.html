@@ -1,0 +1,652 @@
+<!--
+This is a very simplified version of my project, it took me half an hour to create this
+very simple
+start for a city portfolio, you can use it as a starting point, created by Salvatore Naro for you-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salvatore Naro - 3D very simplified simulation of my city portfolio</title>
+    <style>
+        :root {
+            --primary: #ff2800;
+            --secondary: #000000;
+            --accent: #ffffff;
+        }
+        
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background: #000;
+            color: white;
+        }
+        
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s;
+        }
+        
+        #progress-container {
+            width: 300px;
+            height: 3px;
+            background: #333;
+            margin-top: 20px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        #progress-bar {
+            height: 100%;
+            width: 0;
+            background: var(--primary);
+            transition: width 0.1s;
+        }
+        
+        #hamburger {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .hamburger-line {
+            width: 30px;
+            height: 3px;
+            background: white;
+            margin: 4px 0;
+            transition: all 0.3s;
+            transform-origin: center;
+        }
+        
+        #hamburger.active .hamburger-line:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        
+        #hamburger.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+        
+        #hamburger.active .hamburger-line:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+        
+        #menu {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 350px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 400;
+            padding: 100px 30px;
+            transition: right 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #menu.active {
+            right: 0;
+        }
+        
+        .menu-item {
+            color: white;
+            font-size: 1.5rem;
+            margin: 25px 0;
+            cursor: pointer;
+            transition: color 0.3s;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .menu-item:hover {
+            color: var(--primary);
+        }
+        
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+        
+        .menu-item:hover::before {
+            width: 20px;
+        }
+        
+        #controls-info {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #speedometer {
+            position: fixed;
+            bottom: 100px;
+            left: 50px;
+            width: 150px;
+            height: 150px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="8"/><path d="M50 5 A45 45 0 0 1 95 50" fill="none" stroke="%23ff2800" stroke-width="8" stroke-linecap="round"/><circle cx="50" cy="50" r="3" fill="%23ff2800"/></svg>') no-repeat center;
+            background-size: contain;
+        }
+        
+        #speed-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .project-sign {
+            position: absolute;
+            width: 300px;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 300;
+            backdrop-filter: blur(5px);
+        }
+        
+        .project-image {
+            width: 100%;
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .project-title {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .project-desc {
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .open-file-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .open-file-btn:hover {
+            background: white;
+            color: var(--primary);
+        }
+        
+        #biography-billboard {
+            position: absolute;
+            width: 600px;
+            height: 800px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid var(--primary);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            box-sizing: border-box;
+            z-index: 300;
+            backdrop-filter: blur(5px);
+            border-radius: 15px;
+        }
+        
+        #bio-title {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        #bio-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            text-align: justify;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="loading-screen">
+        <div>LOADING PORTFOLIO EXPERIENCE</div>
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+
+    <div id="hamburger">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+
+    <div id="menu">
+        <div class="menu-item" data-action="home">HOME</div>
+        <div class="menu-item" data-action="projects">PROJECTS</div>
+        <div class="menu-item" data-action="skills">SKILLS</div>
+        <div class="menu-item" data-action="biography">BIOGRAPHY</div>
+        <div class="menu-item" data-action="contact">CONTACT</div>
+    </div>
+
+    <div id="speedometer">
+        <div id="speed-value">0</div>
+    </div>
+
+    <div id="controls-info">
+        W/A/S/D to drive | SPACE to brake | MOUSE to look around
+    </div>
+
+    <!-- Project Signs -->
+    <div class="project-sign" id="project1">
+        <div class="project-image" style="background-image: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80');"></div>
+        <div class="project-title">CHAT-B </div>
+        <div class="project-desc">Conversational AI built with Python and TensorFlow</div>
+        <button class="open-file-btn">OPEN PROJECT</button>
+    </div>
+
+    <div class="project-sign" id="project2">
+        <div class="project-image" style="background-image: url('https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80');"></div>
+        <div class="project-title">ROCKET-B</div>
+        <div class="project-desc">Simulation platform for aerospace design</div>
+        <button class="open-file-btn">OPEN PROJECT</button>
+    </div>
+
+    
+    <div id="biography-billboard">
+        <div id="bio-title">SALVATORE NARO</div>
+        <div id="bio-content">
+            <p>Italian software engineer and digital creator with a passion for AI and interactive 3D design. With over 10 years of experience, I've developed innovative projects like Chat-B and Rocket-B, blending cutting-edge technology with creative vision.</p>
+            <p>My expertise spans Python, TensorFlow, Three.js, and React, enabling me to build impactful solutions in AI, web development, and data visualization.</p>
+            <p>I aim to push the boundaries of technology, creating experiences that educate and inspire.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        
+        let scene, camera, renderer, car, controls;
+        let speed = 0;
+        let maxSpeed = 0.5;
+        let acceleration = 0.001;
+        let deceleration = 0.002;
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+        let canBrake = false;
+        
+        
+        init();
+        
+        function init() {
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.0005);
+            
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+            
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
+            
+            
+            addLights();
+            
+            
+            createEnvironment();
+            
+            
+            createCar();
+            
+            
+            setupControls();
+            
+            
+            setupEventListeners();
+            
+            
+            loadAssets();
+            
+          
+            animate();
+        }
+        
+        function addLights() {
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+            scene.add(ambientLight);
+            
+            const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+            sunLight.position.set(100, 200, 100);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 1024;
+            sunLight.shadow.mapSize.height = 1024;
+            scene.add(sunLight);
+        }
+        
+        function createEnvironment() {
+            
+            const groundGeometry = new THREE.PlaneGeometry(500, 500);
+            const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            
+            const roadGeometry = new THREE.PlaneGeometry(30, 500);
+            const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
+            const road = new THREE.Mesh(roadGeometry, roadMaterial);
+            road.rotation.x = -Math.PI / 2;
+            road.position.y = 0.01;
+            road.receiveShadow = true;
+            scene.add(road);
+            
+           
+            const markingGeometry = new THREE.PlaneGeometry(0.5, 5);
+            const markingMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            
+            for (let i = -250; i < 250; i += 15) {
+                const marking = new THREE.Mesh(markingGeometry, markingMaterial);
+                marking.rotation.x = -Math.PI / 2;
+                marking.position.set(0, 0.02, i);
+                scene.add(marking);
+            }
+            
+            for (let x = -200; x <= 200; x += 40) {
+                for (let z = -200; z <= 200; z += 40) {
+                    if (Math.abs(x) < 50 && Math.abs(z) < 50) continue;
+                    
+                    const height = 20 + Math.random() * 30;
+                    const width = 15 + Math.random() * 10;
+                    const depth = 15 + Math.random() * 10;
+                    
+                    const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
+                    const buildingMaterial = new THREE.MeshStandardMaterial({ 
+                        color: 0xaaaaaa,
+                        roughness: 0.7
+                    });
+                    
+                    const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+                    building.position.set(x, height/2, z);
+                    building.castShadow = true;
+                    scene.add(building);
+                }
+            }
+            
+           
+            createProjectBillboards();
+        }
+        
+        function createProjectBillboards() {
+            
+            const billboard1 = createBillboard(-60, 0, -80, Math.PI * 0.25, "Project 1");
+            scene.add(billboard1);
+            
+            const billboard2 = createBillboard(100, 0, -50, Math.PI * -0.25, "Project 2");
+            scene.add(billboard2);
+            
+            const bioBillboard = createBillboard(0, 0, -200, 0, "Bio", true);
+            scene.add(bioBillboard);
+        }
+        
+        function createBillboard(x, y, z, rotation, text, isBio = false) {
+            const group = new THREE.Group();
+            
+            
+            const poleGeometry = new THREE.CylinderGeometry(0.2, 0.2, 6);
+            const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+            pole.position.y = 3;
+            group.add(pole);
+            
+            
+            const boardGeometry = new THREE.PlaneGeometry(8, 4);
+            const boardMaterial = new THREE.MeshStandardMaterial({ 
+                color: isBio ? 0x111111 : 0x000000,
+                emissive: isBio ? 0xff2800 : 0x111111,
+                emissiveIntensity: isBio ? 0.5 : 0.2
+            });
+            const board = new THREE.Mesh(boardGeometry, boardMaterial);
+            board.position.set(0, 6, 0);
+            board.rotation.y = Math.PI;
+            group.add(board);
+            
+            
+            group.position.set(x, y, z);
+            group.rotation.y = rotation;
+            
+            
+            group.userData = { 
+                type: isBio ? "biography" : "project",
+                projectId: isBio ? null : "project" + (text.split(" ")[1])
+            };
+            
+            return group;
+        }
+        
+        function createCar() {
+           
+            const carGeometry = new THREE.BoxGeometry(4, 1.5, 8);
+            const carMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+            car = new THREE.Mesh(carGeometry, carMaterial);
+            car.position.set(0, 0.75, 0);
+            car.castShadow = true;
+            scene.add(car);
+            
+            
+            const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.3, 16);
+            const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            
+            const positions = [
+                [1.5, 0.3, 3], [1.5, 0.3, -3],
+                [-1.5, 0.3, 3], [-1.5, 0.3, -3]
+            ];
+            
+            positions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.position.set(pos[0], pos[1], pos[2]);
+                car.add(wheel);
+            });
+        }
+        
+        function setupControls() {
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.maxPolarAngle = Math.PI / 2;
+            controls.minDistance = 5;
+            controls.maxDistance = 20;
+            controls.target.set(0, 0, 0);
+        }
+        
+        function setupEventListeners() {
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            document.addEventListener('keydown', (event) => {
+                switch (event.code) {
+                    case 'KeyW': moveForward = true; break;
+                    case 'KeyS': moveBackward = true; break;
+                    case 'KeyA': moveLeft = true; break;
+                    case 'KeyD': moveRight = true; break;
+                    case 'Space': canBrake = true; break;
+                }
+            });
+            
+            document.addEventListener('keyup', (event) => {
+                switch (event.code) {
+                    case 'KeyW': moveForward = false; break;
+                    case 'KeyS': moveBackward = false; break;
+                    case 'KeyA': moveLeft = false; break;
+                    case 'KeyD': moveRight = false; break;
+                    case 'Space': canBrake = false; break;
+                }
+            });
+            
+            document.getElementById('hamburger').addEventListener('click', () => {
+                const hamburger = document.getElementById('hamburger');
+                const menu = document.getElementById('menu');
+                hamburger.classList.toggle('active');
+                menu.classList.toggle('active');
+            });
+            
+            document.querySelectorAll('.open-file-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    alert(`Opening project: ${btn.parentElement.querySelector('.project-title').textContent}`);
+                });
+            });
+        }
+        
+        function loadAssets() {
+          
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    document.getElementById('loading-screen').style.opacity = 0;
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').style.display = 'none';
+                    }, 1000);
+                }
+            }, 200);
+        }
+        
+        function updateCarMovement() {
+            
+            if (moveForward) {
+                speed = Math.min(speed + acceleration, maxSpeed);
+            } else if (moveBackward) {
+                speed = Math.max(speed - acceleration, -maxSpeed/2);
+            } else if (canBrake) {
+                speed *= 0.9;
+            } else {
+                speed *= 0.98;
+            }
+            
+            
+            car.translateZ(-speed);
+            
+           
+            if (moveLeft) {
+                car.rotation.y += 0.02;
+            }
+            if (moveRight) {
+                car.rotation.y -= 0.02;
+            }
+            
+            
+            document.getElementById('speed-value').textContent = Math.abs(Math.round(speed * 100));
+        }
+        
+        function checkProjectProximity() {
+            if (!car) return;
+            
+            
+            scene.children.forEach(child => {
+                if (child.userData && child.userData.type === "project") {
+                    const distance = car.position.distanceTo(child.position);
+                    const projectId = child.userData.projectId;
+                    const sign = document.getElementById(projectId);
+                    
+                    if (distance < 15 && sign) {
+                        sign.style.display = 'flex';
+                        sign.style.left = `${window.innerWidth/2 - 150}px`;
+                        sign.style.top = `${window.innerHeight/2 - 200}px`;
+                    } else if (sign) {
+                        sign.style.display = 'none';
+                    }
+                }
+                
+               
+                if (child.userData && child.userData.type === "biography") {
+                    const distance = car.position.distanceTo(child.position);
+                    const bioSign = document.getElementById('biography-billboard');
+                    
+                    if (distance < 25 && bioSign) {
+                        bioSign.style.display = 'flex';
+                        bioSign.style.left = `${window.innerWidth/2 - 300}px`;
+                        bioSign.style.top = `${window.innerHeight/2 - 400}px`;
+                    } else if (bioSign) {
+                        bioSign.style.display = 'none';
+                    }
+                }
+            });
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            updateCarMovement();
+            checkProjectProximity();
+            
+            controls.target.copy(car.position);
+            controls.update();
+            
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
